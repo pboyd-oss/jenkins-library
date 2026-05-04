@@ -1,6 +1,6 @@
 def call(Map config = [:]) {
     container('skaffold') {
-        sh "skaffold render --profile=${config.environment ?: 'dev'} --digest-source=remote --output=rendered.yaml"
-        sh "kubectl apply -f rendered.yaml"
+        sh "skaffold render --profile=${config.environment ?: 'dev'} --build-artifacts=artifacts.json --output=rendered.yaml"
+        sh "skaffold apply rendered.yaml"
     }
 }
