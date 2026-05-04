@@ -4,12 +4,13 @@ def call(Map config = [:]) {
         usernameVariable: 'REG_USER',
         passwordVariable: 'REG_PASS'
     )]) {
-        container('skaffold') {
-            sh """
-                mkdir -p /tmp/.docker
-                echo '{"auths":{"${env.REGISTRY.split('/')[0]}":{"auth":"'"\$(echo -n \$REG_USER:\$REG_PASS | base64)"'"}}}' > /tmp/.docker/config.json
-                DOCKER_CONFIG=/tmp/.docker skaffold build --file-output=artifacts.json
-            """
+        withEnv(["DOCKER_CONFIG=${env.WORKSPACE}/.docker"]) {
+            container('skaffold') {
+                sh '''
+                    echo "$REG_PASS" | docker login -u "$REG_USER" --password-stdin $REGISTRY
+                    skaffold build --file-output=artifacts.json
+                '''
+            }
         }
     }
 }
