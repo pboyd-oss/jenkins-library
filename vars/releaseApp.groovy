@@ -1,5 +1,5 @@
 def call(Map config = [:]) {
     container('skaffold') {
-        sh "skaffold run"
+        sh "skaffold run --profile=${config.environment ?: 'dev'}"
     }
 }
