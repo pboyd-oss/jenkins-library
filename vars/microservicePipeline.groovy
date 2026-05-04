@@ -9,6 +9,7 @@ def call(Map config = [:]) {
         agent {
             kubernetes {
                 inheritFrom 'skaffold'
+                idleMinutes 10
             }
         }
         stages {
