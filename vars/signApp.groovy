@@ -1,8 +1,12 @@
-def call(Map config = [:]) {
-    def artifacts = new groovy.json.JsonSlurper().parseText(readFile('artifacts.json'))
+@NonCPS
+def imageRefs(String json) {
+    new groovy.json.JsonSlurperClassic().parseText(json).builds.collect { it.tag }
+}
 
-    artifacts.builds.each { build ->
-        def imageRef = build.tag
+def call(Map config = [:]) {
+    def refs = imageRefs(readFile('artifacts.json'))
+
+    refs.each { imageRef ->
 
         container('syft') {
             sh "syft '${imageRef}' -o spdx-json > sbom.json"
