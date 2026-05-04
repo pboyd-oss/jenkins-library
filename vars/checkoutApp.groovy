@@ -1,0 +1,3 @@
+def call() {
+    checkout scm
+}
