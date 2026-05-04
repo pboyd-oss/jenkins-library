@@ -1,14 +1,22 @@
 def call(Map config = [:]) {
     def artifacts = readJSON file: 'artifacts.json'
 
+    def cosignVersion = config.cosignVersion ?: '2.5.2'
+    def syftVersion = config.syftVersion ?: '1.21.0'
+
     artifacts.builds.each { build ->
         def imageRef = build.tag
 
-        container('syft') {
-            sh "syft '${imageRef}' -o spdx-json > sbom.json"
-        }
+        container('skaffold') {
+            sh """
+                curl -sL https://github.com/sigstore/cosign/releases/download/v${cosignVersion}/cosign-linux-amd64 -o /tmp/cosign
+                chmod +x /tmp/cosign
+                curl -sL https://github.com/anchore/syft/releases/download/v${syftVersion}/syft_${syftVersion}_linux_amd64.tar.gz | tar -xz -C /tmp syft
+                chmod +x /tmp/syft
+            """
 
-        container('cosign') {
+            sh "/tmp/syft '${imageRef}' -o spdx-json > sbom.json"
+
             writeJSON file: 'provenance.json', json: [
                 builder: [id: 'https://jenkins.tuxgrid.com'],
                 buildType: 'https://tuxgrid.com/jenkins/build/v1',
@@ -31,9 +39,9 @@ def call(Map config = [:]) {
             ]
 
             withEnv(['COSIGN_PASSWORD=']) {
-                sh "cosign sign --key /cosign-key/cosign.key --no-tlog-upload '${imageRef}'"
-                sh "cosign attest --key /cosign-key/cosign.key --no-tlog-upload --predicate sbom.json --type spdx '${imageRef}'"
-                sh "cosign attest --key /cosign-key/cosign.key --no-tlog-upload --predicate provenance.json --type slsaprovenance '${imageRef}'"
+                sh "/tmp/cosign sign --key /cosign-key/cosign.key --no-tlog-upload '${imageRef}'"
+                sh "/tmp/cosign attest --key /cosign-key/cosign.key --no-tlog-upload --predicate sbom.json --type spdx '${imageRef}'"
+                sh "/tmp/cosign attest --key /cosign-key/cosign.key --no-tlog-upload --predicate provenance.json --type slsaprovenance '${imageRef}'"
             }
         }
     }
