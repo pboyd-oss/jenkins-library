@@ -1,6 +1,13 @@
+// Registry credential resolution order:
+//   1. config.credentialsId (explicit override)
+//   2. TUXGRID_REGISTRY_CREDENTIALS_ID (baked in by seed job per team)
+//   3. 'gitea-registry' (global fallback for legacy jobs)
 def call(Map config = [:]) {
+    def credId   = config.credentialsId ?: env.TUXGRID_REGISTRY_CREDENTIALS_ID ?: 'gitea-registry'
+    def registry = config.registry      ?: env.TUXGRID_REGISTRY_URL             ?: 'gitea.tuxgrid.com'
+
     withCredentials([usernamePassword(
-        credentialsId: config.credentialsId ?: 'gitea-registry',
+        credentialsId:    credId,
         usernameVariable: 'REG_USER',
         passwordVariable: 'REG_PASS'
     )]) {
@@ -9,9 +16,8 @@ def call(Map config = [:]) {
                 sh """
                     mkdir -p \$DOCKER_CONFIG
                     AUTH=\$(printf '%s:%s' "\$REG_USER" "\$REG_PASS" | base64 | tr -d '\\n')
-                    printf '{"auths":{"${config.registry ?: 'gitea.tuxgrid.com'}":{"auth":"%s"}}}' "\$AUTH" > "\$DOCKER_CONFIG/config.json"
-                    echo "DEBUG: registry user=\$REG_USER"
-                    curl -s -o /dev/null -w "DEBUG: registry token exchange HTTP %{http_code}\\n" -u "\$REG_USER:\$REG_PASS" "https://gitea.tuxgrid.com/v2/token?service=container_registry&scope=repository:pboyd/dummy-nginx:push,pull"
+                    printf '{"auths":{"${registry}":{"auth":"%s"}}}' "\$AUTH" > "\$DOCKER_CONFIG/config.json"
+                    cp "\$DOCKER_CONFIG/config.json" /tmp/kaniko-config.json
                     skaffold build --file-output=artifacts.json
                 """
             }
