@@ -4,8 +4,9 @@ def call(Map config = [:]) {
             /kaniko/executor \
               --context=${config.context ?: '.'} \
               --dockerfile=${config.dockerfile ?: 'Dockerfile'} \
-              --destination=${config.image}:${env.BUILD_NUMBER} \
-              --destination=${config.image}:latest
+              --docker-cfg=/kaniko/.docker \
+              --destination=${config.image ?: 'gitea.tuxgrid.com/pboyd/' + config.name}:${env.BUILD_NUMBER} \
+              --destination=${config.image ?: 'gitea.tuxgrid.com/pboyd/' + config.name}:latest
         """
     }
 }
