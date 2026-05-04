@@ -1,7 +1,7 @@
 def call(Map config = [:]) {
-    def builds = readJSON file: 'artifacts.json'
+    def artifacts = new groovy.json.JsonSlurper().parseText(readFile('artifacts.json'))
 
-    builds.builds.each { build ->
+    artifacts.builds.each { build ->
         def imageRef = build.tag
 
         container('syft') {
@@ -9,7 +9,7 @@ def call(Map config = [:]) {
         }
 
         container('cosign') {
-            def provenance = [
+            def provenance = groovy.json.JsonOutput.toJson([
                 builder: [id: 'https://jenkins.tuxgrid.com'],
                 buildType: 'https://tuxgrid.com/jenkins/build/v1',
                 invocation: [
@@ -28,8 +28,8 @@ def call(Map config = [:]) {
                     uri: env.GIT_URL ?: '',
                     digest: [sha1: env.GIT_COMMIT ?: '']
                 ]]
-            ]
-            writeJSON file: 'provenance.json', json: provenance
+            ])
+            writeFile file: 'provenance.json', text: provenance
 
             withEnv(['COSIGN_PASSWORD=']) {
                 sh "cosign sign --key /cosign-key/cosign.key --no-tlog-upload '${imageRef}'"
