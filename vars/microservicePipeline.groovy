@@ -17,7 +17,7 @@ def call(Map config = [:]) {
                 steps {
                     script {
                         if (config.preCheckout) config.preCheckout()
-                        checkoutApp()
+                        checkout scm
                         if (config.postCheckout) config.postCheckout()
                     }
                 }
@@ -43,6 +43,16 @@ def call(Map config = [:]) {
                         if (config.preBuild) config.preBuild()
                         config.build()
                         if (config.postBuild) config.postBuild()
+                    }
+                }
+            }
+            stage('Sign') {
+                when {
+                    expression { config.build != null }
+                }
+                steps {
+                    script {
+                        signApp()
                     }
                 }
             }
