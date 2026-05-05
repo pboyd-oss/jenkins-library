@@ -39,9 +39,9 @@ def call(Map config = [:]) {
             ]
 
             withEnv(['COSIGN_PASSWORD=']) {
-                sh "/tmp/cosign sign --key /cosign-key/cosign.key --no-tlog-upload '${imageRef}'"
-                sh "/tmp/cosign attest --key /cosign-key/cosign.key --no-tlog-upload --predicate sbom.json --type spdx '${imageRef}'"
-                sh "/tmp/cosign attest --key /cosign-key/cosign.key --no-tlog-upload --predicate provenance.json --type slsaprovenance '${imageRef}'"
+                sh "/tmp/cosign sign --key /cosign-key/cosign.key --tlog-upload=false '${imageRef}'"
+                sh "/tmp/cosign attest --key /cosign-key/cosign.key --tlog-upload=false --predicate sbom.json --type spdx '${imageRef}'"
+                sh "/tmp/cosign attest --key /cosign-key/cosign.key --tlog-upload=false --predicate provenance.json --type slsaprovenance '${imageRef}'"
             }
         }
     }
