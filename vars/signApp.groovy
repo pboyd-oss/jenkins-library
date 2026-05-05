@@ -38,9 +38,9 @@ def call(Map config = [:]) {
                 ]]
             ]
 
-            sh "COSIGN_PASSWORD='' DOCKER_CONFIG=/kaniko/.docker /tmp/cosign sign --key /cosign-key/cosign.key --tlog-upload=false '${imageRef}'"
-            sh "COSIGN_PASSWORD='' DOCKER_CONFIG=/kaniko/.docker /tmp/cosign attest --key /cosign-key/cosign.key --tlog-upload=false --predicate sbom.json --type spdx '${imageRef}'"
-            sh "COSIGN_PASSWORD='' DOCKER_CONFIG=/kaniko/.docker /tmp/cosign attest --key /cosign-key/cosign.key --tlog-upload=false --predicate provenance.json --type slsaprovenance '${imageRef}'"
+            sh "COSIGN_PASSWORD='' DOCKER_CONFIG=/root/.docker /tmp/cosign sign --key /cosign-key/cosign.key --tlog-upload=false '${imageRef}'"
+            sh "COSIGN_PASSWORD='' DOCKER_CONFIG=/root/.docker /tmp/cosign attest --key /cosign-key/cosign.key --tlog-upload=false --predicate sbom.json --type spdx '${imageRef}'"
+            sh "COSIGN_PASSWORD='' DOCKER_CONFIG=/root/.docker /tmp/cosign attest --key /cosign-key/cosign.key --tlog-upload=false --predicate provenance.json --type slsaprovenance '${imageRef}'"
         }
     }
 }
