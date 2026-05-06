@@ -26,7 +26,9 @@ def call(Map config = [:]) {
                     --destination=${image}:latest \
                     --cache=true \
                     --cache-repo=${image}/cache \
-                    --custom-platform=linux/amd64
+                    --custom-platform=linux/amd64 \
+                    --snapshot-mode=redo \
+                    --compressed-caching=false
             """
         }
     }
