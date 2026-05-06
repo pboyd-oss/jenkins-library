@@ -13,13 +13,13 @@ def call(Map config = [:]) {
     )]) {
         container('kaniko') {
             sh '''
-                mkdir -p /kaniko/.docker
+                mkdir -p /tmp/.docker
                 printf '{"auths":{"harbor.tuxgrid.com":{"auth":"%s"}}}' \
                     "$(printf '%s:%s' "$HARBOR_USER" "$HARBOR_TOKEN" | base64 -w0)" \
-                    > /kaniko/.docker/config.json
+                    > /tmp/.docker/config.json
             '''
             sh """
-                /kaniko/executor \
+                DOCKER_CONFIG=/tmp/.docker /kaniko/executor \
                     --context=${context} \
                     --dockerfile=${dockerfile} \
                     --destination=${image}:${tag} \
