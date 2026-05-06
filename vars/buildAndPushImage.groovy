@@ -1,8 +1,9 @@
 def call(Map config = [:]) {
-    def image       = config.image       ?: error('buildAndPushImage: image is required')
-    def tag         = config.tag         ?: env.GIT_COMMIT?.take(7) ?: 'dev'
-    def dockerfile  = config.dockerfile  ?: 'Dockerfile'
-    def context     = config.context     ?: 'dir://${WORKSPACE}'
+    if (!config.image) error('buildAndPushImage: image is required')
+    def image         = config.image
+    def tag           = config.tag          ?: env.GIT_COMMIT?.take(7) ?: 'dev'
+    def dockerfile    = config.dockerfile   ?: 'Dockerfile'
+    def context       = config.context      ?: "dir://${env.WORKSPACE}"
     def credentialsId = config.credentialsId ?: 'harbor-robot-platform'
 
     withCredentials([usernamePassword(
