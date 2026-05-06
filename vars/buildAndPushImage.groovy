@@ -25,7 +25,8 @@ def call(Map config = [:]) {
                     --destination=${image}:${tag} \
                     --destination=${image}:latest \
                     --cache=true \
-                    --cache-repo=${image}/cache
+                    --cache-repo=${image}/cache \
+                    --custom-platform=linux/amd64
             """
         }
     }
