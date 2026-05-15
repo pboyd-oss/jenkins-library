@@ -1,7 +1,7 @@
 // Hook points available in config:
 //   preCheckout, postCheckout
 //   preTest, test, postTest       (stage skipped if test not provided)
-//   preBuild, build, postBuild    (stage skipped if build not provided)
+//   preBuild, build, postBuild
 //   preRelease, postRelease
 //   environment                   (string: 'dev' | 'test' | 'production')
 def call(Map config = [:]) {
@@ -35,22 +35,38 @@ def call(Map config = [:]) {
                 }
             }
             stage('Build') {
-                when {
-                    expression { config.build != null }
-                }
                 steps {
                     script {
                         if (config.preBuild) config.preBuild()
-                        config.build()
+                        if (config.build) {
+                            config.build()
+                        } else {
+                            buildApp()
+                        }
                         if (config.postBuild) config.postBuild()
                     }
+                }
+            }
+            stage('Archive') {
+                steps {
+                    script { platformArchive(fromSkaffold: true) }
+                }
+            }
+            stage('Sign') {
+                steps {
+                    script { platformSign() }
+                }
+            }
+            stage('Provenance') {
+                steps {
+                    script { platformBuildProvenance(simple: true) }
                 }
             }
             stage('Release') {
                 steps {
                     script {
                         if (config.preRelease) config.preRelease()
-                        releaseApp(environment: config.environment ?: 'dev')
+                        platformDeploy(profile: config.environment ?: 'dev')
                         if (config.postRelease) config.postRelease()
                     }
                 }
