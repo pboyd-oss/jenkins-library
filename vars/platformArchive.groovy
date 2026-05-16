@@ -19,16 +19,10 @@ def call(Map config = [:]) {
             builds: [[imageName: env.IMAGE, tag: "${env.IMAGE}@${env.IMAGE_DIGEST}", number: env.BUILD_NUMBER]]
         ]
     } else {
-        if (includeDeps) {
-            container('kaniko') {
-                sh '''
-                    cp /mitm-data/deps.ndjson ${WORKSPACE}/deps.ndjson 2>/dev/null \
-                        || printf '[]' > ${WORKSPACE}/deps.ndjson
-                '''
-            }
-        } else {
+        if (!includeDeps || !fileExists("${env.WORKSPACE}/deps.ndjson")) {
             writeFile file: 'deps.ndjson', text: '[]'
         }
+        // deps.ndjson is copied from /mitm-data during platformBuild()
         env.IMAGE_DIGEST = readFile("${env.WORKSPACE}/image.digest").trim()
         writeJSON file: 'artifacts.json', json: [
             builds: [[imageName: env.IMAGE, tag: "${env.IMAGE}@${env.IMAGE_DIGEST}", number: env.BUILD_NUMBER]]
