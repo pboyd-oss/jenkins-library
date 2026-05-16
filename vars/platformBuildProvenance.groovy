@@ -135,7 +135,7 @@ PYEOF
                             --predicate /tmp/provenance.json \
                             "${PROVENANCE_IMAGE_REF}"
 
-                        syft "${PROVENANCE_IMAGE_REF}" \
+                        SYFT_CHECK_FOR_APP_UPDATE=false syft "${PROVENANCE_IMAGE_REF}" \
                             --output cyclonedx-json=/tmp/sbom.json
 
                         DOCKER_CONFIG=/tmp/.docker COSIGN_PASSWORD="" cosign attest --key /tmp/cosign.key --yes \
