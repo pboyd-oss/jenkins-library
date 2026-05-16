@@ -29,7 +29,6 @@ def call(Map config = [:]) {
                     --snapshot-mode=redo \\
                     ${extraArgFlags} \\
                     --destination=${env.IMAGE}:${tag} \\
-                    --destination=${env.IMAGE}:latest \\
                     --digest-file=${env.WORKSPACE}/image.digest \\
                     ${cacheFlags}
                 cp /mitm-data/deps.ndjson ${env.WORKSPACE}/deps.ndjson 2>/dev/null || printf '[]' > ${env.WORKSPACE}/deps.ndjson
