@@ -7,7 +7,7 @@ def call(Map config = [:]) {
 
     def extraArgFlags = extraBuildArgs.collect { "--build-arg ${it}=\${${it}}" }.join(" \\\n                        ")
     def cacheFlags    = (useCache && cacheRepo) ?
-        "--cache=true \\\n                        --snapshot-mode=redo \\\n                        --compressed-caching=false \\\n                        --cache-repo=${cacheRepo}" : ''
+        "--cache=true \\\n                        --compressed-caching=false \\\n                        --cache-repo=${cacheRepo}" : ''
 
     container('kaniko') {
         withCredentials([usernamePassword(
@@ -24,8 +24,9 @@ def call(Map config = [:]) {
                     --context=dir://. \\
                     --dockerfile=${dockerfile} \\
                     --build-arg "PLATFORM_CA_B64=\${PLATFORM_CA_B64}" \\
-                    --build-arg "HTTPS_PROXY=http://localhost:8080" \\
-                    --build-arg "HTTP_PROXY=http://localhost:8080" \\
+                    --build-arg "HTTPS_PROXY=http://127.0.0.1:8080" \\
+                    --build-arg "HTTP_PROXY=http://127.0.0.1:8080" \\
+                    --snapshot-mode=redo \\
                     ${extraArgFlags} \\
                     --destination=${env.IMAGE}:${tag} \\
                     --destination=${env.IMAGE}:latest \\
