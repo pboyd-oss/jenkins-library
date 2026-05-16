@@ -3,6 +3,11 @@ def call(Map config = [:]) {
     def simple           = config.simple    ?: false
     def signingContainer = config.container ?: 'deploy-sec-base'
 
+    if (!env.IMAGE?.startsWith('harbor.tuxgrid.com/')) {
+        echo "platformBuildProvenance: skipping — image '${env.IMAGE}' is not in harbor.tuxgrid.com"
+        return
+    }
+
     if (!imageRef || !imageRef.contains('@sha256:')) {
         error('platformBuildProvenance: imageRef must be a digest reference (IMAGE@sha256:...). Ensure Archive stage sets IMAGE_DIGEST before calling this step.')
     }
@@ -21,9 +26,9 @@ def call(Map config = [:]) {
                         printf '%s' "${COSIGN_PRIVATE_KEY}" > /tmp/cosign.key
                         chmod 600 /tmp/cosign.key
                         AUTH=$(printf '%s:%s' "${HARBOR_USER}" "${HARBOR_PASS}" | base64 | tr -d '\\n')
-                        mkdir -p ~/.docker
+                        mkdir -p /tmp/.docker
                         printf '{"auths":{"harbor.tuxgrid.com":{"auth":"%s"}}}' "${AUTH}" \
-                            > ~/.docker/config.json
+                            > /tmp/.docker/config.json
 
                         NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
                         STARTED=$(date -u -d "@$((BUILD_TIMESTAMP / 1000))" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "${NOW}")
@@ -51,21 +56,21 @@ def call(Map config = [:]) {
 }
 EOF
 
-                        COSIGN_PASSWORD="" cosign attest --key /tmp/cosign.key --yes \
+                        DOCKER_CONFIG=/tmp/.docker COSIGN_PASSWORD="" cosign attest --key /tmp/cosign.key --yes \
                             --type slsaprovenance1 \
                             --predicate /tmp/provenance.json \
                             "${PROVENANCE_IMAGE_REF}"
 
-                        rm -f /tmp/cosign.key ~/.docker/config.json /tmp/provenance.json
+                        rm -f /tmp/cosign.key /tmp/.docker/config.json /tmp/provenance.json
                     '''
                 } else {
                     sh '''
                         printf '%s' "${COSIGN_PRIVATE_KEY}" > /tmp/cosign.key
                         chmod 600 /tmp/cosign.key
                         AUTH=$(printf '%s:%s' "${HARBOR_USER}" "${HARBOR_PASS}" | base64 | tr -d '\n')
-                        mkdir -p ~/.docker
+                        mkdir -p /tmp/.docker
                         printf '{"auths":{"harbor.tuxgrid.com":{"auth":"%s"}}}' "${AUTH}" \
-                            > ~/.docker/config.json
+                            > /tmp/.docker/config.json
 
                         python3 - << 'PYEOF'
 import json, os, datetime
@@ -125,7 +130,7 @@ with open("/tmp/provenance.json", "w") as f:
 print("provenance.json: {} resolved dependencies".format(len(deps)))
 PYEOF
 
-                        COSIGN_PASSWORD="" cosign attest --key /tmp/cosign.key --yes \
+                        DOCKER_CONFIG=/tmp/.docker COSIGN_PASSWORD="" cosign attest --key /tmp/cosign.key --yes \
                             --type slsaprovenance1 \
                             --predicate /tmp/provenance.json \
                             "${PROVENANCE_IMAGE_REF}"
@@ -133,12 +138,12 @@ PYEOF
                         syft "${PROVENANCE_IMAGE_REF}" \
                             --output cyclonedx-json=/tmp/sbom.json
 
-                        COSIGN_PASSWORD="" cosign attest --key /tmp/cosign.key --yes \
+                        DOCKER_CONFIG=/tmp/.docker COSIGN_PASSWORD="" cosign attest --key /tmp/cosign.key --yes \
                             --type cyclonedx \
                             --predicate /tmp/sbom.json \
                             "${PROVENANCE_IMAGE_REF}"
 
-                        rm -f /tmp/cosign.key ~/.docker/config.json /tmp/provenance.json /tmp/sbom.json
+                        rm -f /tmp/cosign.key /tmp/.docker/config.json /tmp/provenance.json /tmp/sbom.json
                     '''
                 }
             }
