@@ -1,6 +1,11 @@
 def call(Map config = [:]) {
     def signingContainer = config.container ?: 'deploy-sec-base'
 
+    if (!env.IMAGE?.startsWith('harbor.tuxgrid.com/')) {
+        echo "platformSign: skipping — image '${env.IMAGE}' is not in harbor.tuxgrid.com"
+        return
+    }
+
     container(signingContainer) {
         withCredentials([
             string(credentialsId: 'cosign-key', variable: 'COSIGN_PRIVATE_KEY'),
