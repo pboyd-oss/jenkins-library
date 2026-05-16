@@ -24,6 +24,8 @@ def call(Map config = [:]) {
                     --context=dir://. \\
                     --dockerfile=${dockerfile} \\
                     --build-arg "PLATFORM_CA_B64=\${PLATFORM_CA_B64}" \\
+                    --build-arg "HTTPS_PROXY=http://localhost:8080" \\
+                    --build-arg "HTTP_PROXY=http://localhost:8080" \\
                     ${extraArgFlags} \\
                     --destination=${env.IMAGE}:${tag} \\
                     --destination=${env.IMAGE}:latest \\
