@@ -13,12 +13,12 @@ def call(Map config = [:]) {
                 printf '%s' "${COSIGN_PRIVATE_KEY}" > /tmp/cosign.key
                 chmod 600 /tmp/cosign.key
                 AUTH=$(printf '%s:%s' "${HARBOR_USER}" "${HARBOR_PASS}" | base64 | tr -d '\n')
-                mkdir -p ~/.docker
+                mkdir -p /tmp/.docker
                 printf '{"auths":{"harbor.tuxgrid.com":{"auth":"%s"}}}' "${AUTH}" \
-                    > ~/.docker/config.json
-                COSIGN_PASSWORD="" cosign sign --key /tmp/cosign.key --yes \
+                    > /tmp/.docker/config.json
+                DOCKER_CONFIG=/tmp/.docker COSIGN_PASSWORD="" cosign sign --key /tmp/cosign.key --yes \
                     "${IMAGE}@${IMAGE_DIGEST}"
-                rm -f /tmp/cosign.key ~/.docker/config.json
+                rm -f /tmp/cosign.key /tmp/.docker/config.json
             '''
         }
     }
