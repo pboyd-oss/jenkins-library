@@ -63,6 +63,9 @@ def call(Map config = [:]) {
                 }
             }
             stage('Release') {
+                when {
+                    expression { fileExists('k8s') }
+                }
                 steps {
                     script {
                         if (config.preRelease) config.preRelease()
