@@ -57,6 +57,7 @@ def call(Map config = [:]) {
 EOF
 
                         DOCKER_CONFIG=/tmp/.docker COSIGN_PASSWORD="" cosign attest --key /tmp/cosign.key --yes \
+                            --tlog-upload=false \
                             --type slsaprovenance1 \
                             --predicate /tmp/provenance.json \
                             "${PROVENANCE_IMAGE_REF}"
